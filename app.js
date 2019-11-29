@@ -1,6 +1,9 @@
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path
 const NodeMediaServer = require('./');
 
+
 const config = {
+  logType:4,
   rtmp: {
     port: 1935,
     chunk_size: 60000,
@@ -18,6 +21,20 @@ const config = {
     port: 8443,
     key: './privatekey.pem',
     cert: './certificate.pem',
+  },
+  trans: {
+    ffmpeg: ffmpegPath,
+    url:'http://localhost:3000/{streamName}/index.m3u8',
+    tasks: [
+      {
+        app: 'live',
+        hls: false,
+        hlsFlags: '[hls_time=2:hls_list_size=0]',
+        //acParam:['-f' , 'hls' , '-method', 'PUT', 'http://localhost:8000/index.m3u8'],
+        acParam: ['-f' , 'hls' , '-hls_list_size','0','-method', 'PUT'],
+        //name: 'stream_high'
+      }
+    ]
   },
   auth: {
     api: true,

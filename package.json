@@ -22,12 +22,15 @@
   },
   "homepage": "https://github.com/illuspas/Node-Media-Server#readme",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "aws-sdk": "^2.579.0",
     "basic-auth-connect": "^1.0.0",
     "chalk": "^2.4.2",
     "dateformat": "^3.0.3",
     "express": "^4.16.4",
     "lodash": ">=4.17.13",
     "mkdirp": "^0.5.1",
+    "stream": "0.0.2",
     "ws": "^5.2.2"
   },
   "engines": {
