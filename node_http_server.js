@@ -4,8 +4,6 @@
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
 
-const { Readable } = require("stream");
-
 const Fs = require('fs');
 const path = require('path');
 const Http = require('http');
@@ -32,7 +30,13 @@ class NodeHttpServer {
     this.port = config.http.port || HTTP_PORT;
     this.mediaroot = config.http.mediaroot || HTTP_MEDIAROOT;
     this.config = config;
-    //this.mediaStoreData;
+    
+    const CONFIG_MEDIA_STORE = {
+      region: 'eu-central-1',
+      endpoint: 'https://tmi3kx5q2dg2vw.data.mediastore.eu-central-1.amazonaws.com',
+      s3BucketEndpoint: 'melobeemusic-content-develop'
+    };
+    this.mediaStoreData = new MediaStoreData(CONFIG_MEDIA_STORE);
 
     let app = Express();
 
@@ -60,63 +64,38 @@ class NodeHttpServer {
     }
 
     app.put(["*.ts"], (req, res, next) => {
-      //console.log("*.m3u8,*.ts");
-
       var urlSplit = req.originalUrl.split("/");
       const streamName = urlSplit[1];
       const postPath=streamName + "/" + urlSplit[2];
-      console.log("streamName(postPath) ==> " + postPath);
-      //const fileName = "./uploads/" + urlSplit[2];
-      //var wStream = Fs.createWriteStream(fileName);
-      //console.log("Received file==> " + fileName);
+      console.log("Request(postPath) ==> " + postPath);
 
       let body = [];
       let fileByte;
-      //let readableStream = new Readable();
 
       req
         .on("data", data => {
-          //readableStream.push(data)
           body.push(data);
         })
         .on("close", () => {
           fileByte = Buffer.concat(body);
-          //wStream.end();
-          //console.log("Close writing file ==>" + fileName);
-          //if(!req.originalUrl.includes('.m3u8'))
-            //this.uploadToMediaStore(readableStream, postPath);
-            //readableStream.push(null);
-            console.log("uploadToMediaStore==> " + postPath);
+          //console.log("close file receive for==> " + postPath);
+          var params = {
+            Body: fileByte,
+            Path: postPath,
+            StorageClass: "TEMPORAL"
+          };
 
-            const CONFIG_MEDIA_STORE = {
-              region: 'eu-central-1',
-          endpoint: 'https://tmi3kx5q2dg2vw.data.mediastore.eu-central-1.amazonaws.com',
-          s3BucketEndpoint: 'melobeemusic-content-develop'
-            };
-        
-            const mediaStoreData = new MediaStoreData(CONFIG_MEDIA_STORE);
-
-            
-            var params = {
-              Body: fileByte,
-              Path: postPath,
-              StorageClass: "TEMPORAL"
-            };
-            
-            //console.log("this.mediaStoreData==>" + JSON.stringify( this.mediaStoreData.config));
-
-             return mediaStoreData.putObject(params, (err, data) => {
-                console.log("putObject" );
-                if (!err) {
-                  console.log("UPLOADED: ", postPath);
-                }else {
-                  console.log(err);
-                }
-              });
-            
-            
+          console.log("Going to upload");
+          this.mediaStoreData.putObject(params, (err, data) => {
+            console.log("File Saved" + postPath);
+            if (!err) {
+              console.log("Uploaded: ", postPath);
+            }else {
+              console.log(err);
+            }
+          });
+  
         });
-
       //res.send();
     });
 

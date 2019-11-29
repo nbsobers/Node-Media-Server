@@ -3,7 +3,7 @@ const NodeMediaServer = require('./');
 
 
 const config = {
-  logType:4,
+  logType:3,
   rtmp: {
     port: 1935,
     chunk_size: 60000,
@@ -24,7 +24,7 @@ const config = {
   },
   trans: {
     ffmpeg: ffmpegPath,
-    url:'http://localhost:3000/{streamName}/index.m3u8',
+    url:'http://localhost:8000/{streamName}/index.m3u8',
     tasks: [
       {
         app: 'live',
