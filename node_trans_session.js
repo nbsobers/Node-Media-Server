@@ -55,13 +55,13 @@ class NodeTransSession extends EventEmitter {
       Logger.log('[Transmuxing DASH] ' + this.conf.streamPath + ' to ' + ouPath + '/' + dashFileName);
     }
     mkdirp.sync(ouPath);
-    const url = this.conf.url.replace('{streamName}',  this.conf.streamName);
     let argv = ['-y', '-fflags', 'nobuffer', '-i', inPath];
     Array.prototype.push.apply(argv, ['-c:v', vc]);
     Array.prototype.push.apply(argv, this.conf.vcParam);
     Array.prototype.push.apply(argv, ['-c:a', ac]);
     Array.prototype.push.apply(argv, this.conf.acParam);
-    Array.prototype.push.apply(argv, [url]);
+    Array.prototype.push.apply(argv, this.conf.putParam);
+    Array.prototype.push.apply(argv,[this.conf.putUrl]);
     Array.prototype.push.apply(argv, ['-f', 'tee', '-map', '0:a?', '-map', '0:v?', mapStr]);
     argv = argv.filter((n) => { return n }); //去空
     this.ffmpeg_exec = spawn(this.conf.ffmpeg, argv);

@@ -3,6 +3,15 @@ const NodeMediaServer = require('./');
 
 
 const config = {
+  melobee:{
+    API_URI:"http://dev.melobee.com:9876",
+    CONFIG_MEDIA_STORE : {
+      "region": "eu-central-1",
+      "endpoint":
+        "https://tmi3kx5q2dg2vw.data.mediastore.eu-central-1.amazonaws.com",
+      "s3BucketEndpoint": "melobeemusic-content-develop"
+    },
+  },
   logType:3,
   rtmp: {
     port: 1935,
@@ -24,26 +33,27 @@ const config = {
   },
   trans: {
     ffmpeg: ffmpegPath,
-    url:'http://localhost:8000/{streamName}/index.m3u8',
     tasks: [
       {
         app: 'live',
         hls: false,
         hlsFlags: '[hls_time=2:hls_list_size=0]',
         //acParam:['-f' , 'hls' , '-method', 'PUT', 'http://localhost:8000/index.m3u8'],
-        acParam: ['-f' , 'hls' , '-hls_list_size','0','-method', 'PUT'],
+        //acParam: ['-f' , 'hls' , '-hls_list_size','0','-method', 'PUT'],
+        putParam:['-f' , 'hls' , '-hls_list_size','0','-method', 'PUT'],
+        putUrl:'http://localhost:8000/{streamName}/{videoId}/index.m3u8',
         //name: 'stream_high'
       }
     ]
   },
-  auth: {
-    api: true,
-    api_user: 'admin',
-    api_pass: 'admin',
-    play: false,
-    publish: false,
-    secret: 'nodemedia2017privatekey'
-  },
+  // auth: {
+  //   api: true,
+  //   api_user: 'admin',
+  //   api_pass: 'admin',
+  //   play: false,
+  //   publish: false,
+  //   secret: 'nodemedia2017privatekey'
+  // },
 };
 
 

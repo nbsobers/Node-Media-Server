@@ -4,6 +4,7 @@
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
 const Logger = require('./node_core_logger');
+const fetch = require('node-fetch')
 
 const NodeTransSession = require('./node_trans_session');
 const context = require('./node_core_ctx');
@@ -56,24 +57,37 @@ class NodeTransServer {
     let regRes = /\/(.*)\/(.*)/gi.exec(streamPath);
     let [app, name] = _.slice(regRes, 1);
     let i = this.config.trans.tasks.length;
+    let melobee = this.config.melobee;
     while (i--) {
       let conf = this.config.trans.tasks[i];
       conf.ffmpeg = this.config.trans.ffmpeg;
-      conf.url = this.config.trans.url;
       conf.mediaroot = this.config.http.mediaroot;
       conf.rtmpPort = this.config.rtmp.port;
       conf.streamPath = streamPath;
       conf.streamApp = app;
       conf.streamName = name;
+      conf.melobee=melobee;
       conf.args = args;
       if (app === conf.app) {
-        let session = new NodeTransSession(conf);
-        this.transSessions.set(id, session);
-        session.on('end', () => {
-          this.transSessions.delete(id);
-        });
-        session.run();
-      }
+      let melobee = this.config.melobee;
+      this.createLivestream(melobee.API_URI, name)
+            .then(video => {
+              if (video.code == 404) throw new Error('User not found');
+              console.log(' --- --- Created Video Id ', video, ' --- --- ');
+              const putUrl= conf.putUrl.replace('{streamName}',  name).replace('{videoId}',  video._id);
+              conf.putUrl=putUrl;
+              console.log(' --- --- putUrl ', putUrl, ' --- --- ');
+
+              let session = new NodeTransSession(conf);
+              this.transSessions.set(id, session);
+              session.on('end', () => {
+                this.transSessions.delete(id);
+              });
+              session.run();
+
+            })
+            .catch(err => console.log(err))
+        }
     }
   }
 
@@ -82,6 +96,18 @@ class NodeTransServer {
     if (session) {
       session.end();
     }
+  }
+
+  async createLivestream (apiUri, streamKey) {
+    return fetch(`${apiUri}/v1/videos/create-live-stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-whalebone-streamkey': streamKey
+      }
+    })
+      .then((response) => response.json())
+      .catch(err => console.log(err))
   }
 }
 

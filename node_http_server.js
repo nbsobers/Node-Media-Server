@@ -31,11 +31,7 @@ class NodeHttpServer {
     this.mediaroot = config.http.mediaroot || HTTP_MEDIAROOT;
     this.config = config;
     
-    const CONFIG_MEDIA_STORE = {
-      region: 'eu-central-1',
-      endpoint: 'https://tmi3kx5q2dg2vw.data.mediastore.eu-central-1.amazonaws.com',
-      s3BucketEndpoint: 'melobeemusic-content-develop'
-    };
+    const CONFIG_MEDIA_STORE = this.config.melobee.CONFIG_MEDIA_STORE;
     this.mediaStoreData = new MediaStoreData(CONFIG_MEDIA_STORE);
 
     let app = Express();
@@ -63,46 +59,46 @@ class NodeHttpServer {
       });
     }
 
-    app.put(["*.ts"], (req, res, next) => {
+    app.put(["*.ts", "*.m3u8"], (req, res, next) => {
       var urlSplit = req.originalUrl.split("/");
-      const streamName = urlSplit[1];
-      const postPath=streamName + "/" + urlSplit[2];
-      console.log("Request(postPath) ==> " + postPath);
+      const videoId = urlSplit[2];
+      const filePath = videoId + "/" + urlSplit[3];
+      console.log(" --- --- filePath: ", filePath, " --- ---");
 
-      let body = [];
-      let fileByte;
-
+      let fileContent = [];
       req
         .on("data", data => {
-          body.push(data);
+          fileContent.push(data);
         })
         .on("close", () => {
-          fileByte = Buffer.concat(body);
-          //console.log("close file receive for==> " + postPath);
-          var params = {
-            Body: fileByte,
-            Path: postPath,
+          fileContent = Buffer.concat(fileContent);
+          const params = {
+            Body: fileContent,
+            Path: filePath,
             StorageClass: "TEMPORAL"
           };
 
-          console.log("Going to upload");
+          console.log(" --- --- Upload to MS starting: ", filePath, " --- ---");
           this.mediaStoreData.putObject(params, (err, data) => {
-            console.log("File Saved" + postPath);
             if (!err) {
-              console.log("Uploaded: ", postPath);
-            }else {
+              console.log(
+                " --- --- Upload to MS completed: ",
+                filePath,
+                " --- ---"
+              );
+              res.send();
+            } else {
               console.log(err);
+              next(err);
             }
           });
-  
         });
-      //res.send();
     });
 
    
-    // if (this.config.auth && this.config.auth.api) {
-    //   app.use(['/api/*', '/static/*', '/admin/*'], basicAuth(this.config.auth.api_user, this.config.auth.api_pass));
-    // }
+    if (this.config.auth && this.config.auth.api) {
+      app.use(['/api/*', '/static/*', '/admin/*'], basicAuth(this.config.auth.api_user, this.config.auth.api_pass));
+    }
     app.use("/api/streams", streamsRoute(context));
     app.use("/api/server", serverRoute(context));
     app.use("/api/relay", relayRoute(context));
@@ -131,27 +127,6 @@ class NodeHttpServer {
       this.httpsServer = Https.createServer(options, app);
     }
   }
-
-  // uploadToMediaStore(file, postPath) {
-  //   console.log("uploadToMediaStore==> " + postPath);
-
-  //   var params = {
-  //     Body: file,
-  //     Path: postPath,
-  //     StorageClass: "TEMPORAL"
-  //   };
-    
-  //   //console.log("this.mediaStoreData==>" + JSON.stringify( this.mediaStoreData.config));
-  //   this.mediaStoreData.putObject(params, (err, data) => {
-  //     console.log("putObject" );
-  //     if (!err) {
-  //       console.log("UPLOADED: ", postPath);
-  //     }else {
-  //       console.log("Error upload ==> " + err);
-  //     }
-  //   });
-    
-  // }
 
   run() {
     this.httpServer.listen(this.port, () => {
