@@ -60,7 +60,12 @@ class NodeHttpServer {
     }
 
     app.put(["*.ts", "*.m3u8"], (req, res, next) => {
+      console.log(" --- --- req.originalUrl: ", req.originalUrl, " --- ---");
+      
       var urlSplit = req.originalUrl.split("/");
+      if(urlSplit.length<4) {
+        throw new Error('Request originalUrl is not correct: ' + req.originalUrl); 
+      }
       const videoId = urlSplit[2];
       const filePath = videoId + "/" + urlSplit[3];
       console.log(" --- --- filePath: ", filePath, " --- ---");

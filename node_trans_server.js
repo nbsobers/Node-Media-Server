@@ -69,7 +69,6 @@ class NodeTransServer {
       conf.melobee=melobee;
       conf.args = args;
       if (app === conf.app) {
-      let melobee = this.config.melobee;
       this.createLivestream(melobee.API_URI, name)
             .then(video => {
               if (video.code == 404) throw new Error('User not found');
