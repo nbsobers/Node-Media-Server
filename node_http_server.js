@@ -71,8 +71,8 @@ class NodeHttpServer {
 
       urlParams= urlParams.slice(-3);
       const videoId = urlParams[1];
-      const streamName = urlParams[2];
-      const filePath = videoId + "/" + streamName;
+      const fileName = urlParams[2];
+      const filePath = videoId + "/" + fileName;
       console.log(" --- --- filePath: ", filePath, " --- ---");
 
       let fileContent = [];
